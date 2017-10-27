@@ -1,0 +1,203 @@
+---
+title: "STAT GR5205 – Section 005 HW 2"
+author: "Bo Rong br2498"
+date: "Oct. 2nd, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.(a) I don't agree. Because there maybe exist negative linear association between X and Y. 
+```
+
+```{r}
+#(b) 
+#No,I don't agree. The standard error for this case is necessarily larger 
+#as prediction is subject to two sources of uncertainty: (1) the true mean 
+#E(Y |X = xh) = beta0 + beta1xh is unknown, so we use instead b0 + b1xh 
+#which is subject to estimation error; and (2) even if the values of beta0 
+#and beta1 were known exactly, the mean of m observations will not equal its true mean.
+#The estimation problem is subject only to the first source.
+
+```
+
+```{r}
+#(c)
+#No,I don't agree.95% prediction interval must account for the variance as estimated by 
+#the MSE which is Yhath+-t(.975;n-2) {MSE[1/n+(xh-xbar)^2/(sum(xi-xbar)^2) +MSE}^1/2 .
+```
+
+
+```{r}
+#2.(a)
+filename <- "~/Downloads/copier_maintenance.txt"
+copier_maintenance<- read.table(file=filename, header=T)
+#H0 :beta1 =0, H1:beta1!=0.
+x <- copier_maintenance$copiers
+y <- copier_maintenance$minutes
+xbar <- mean(x); ybar <- mean(y)
+b1 <- sum( (x - xbar)*(y - ybar) ) / sum( (x - xbar)^2 )
+b1
+b0 <- ybar - b1*xbar
+b0
+yhat <- b0 + b1*x
+e <- y - yhat
+n <- length(y)
+MSE <- sum(e^2)/(n-2)
+se.b1 <- sqrt( MSE / sum( (x - xbar)^2 ) )
+se.b1
+t.star <- b1 / se.b1
+t.star
+2 * (1 - pt(t.star, df=n-2))  # p-value
+#Since p value is 0,there exists a linear association between X and Y. 
+```
+
+
+```{r}
+#(b)
+fit <- lm(minutes ~ copiers, data=copier_maintenance)
+confint(fit, "copiers", level=.95)
+#95% CI is between 14.06101 and 16.00949 minutes.
+
+```
+
+
+```{r}
+#(c)
+#H0 :beta1 <=14, Ha :beta1 >14
+t.star <- (b1 - 14) / se.b1
+t.star
+1 - pt(t.star, df=n-2)  # p-value
+#The P-value is about .01890766, so the manager’s claim 
+#is wrong,
+#we would reject H0 at alpha = .05 but not alpha = .01).
+
+```
+
+```{r}
+#(d)
+summary(fit)
+#The test ofH0 :beta0 =0, Ha beta0!=0 gives a P -value of .837. So the data are consistent with
+#the time required for start-up work is zero.
+```
+
+```{r}
+#3.(a)
+predict(fit, data.frame(copiers=6), interval="confidence")
+#The 95% CI is between 86.82 and 92.45 minutes.
+```
+
+```{r}
+#(b)
+predict(fit, data.frame(copiers=6), interval="prediction")
+#The 95% prediction interval for the next service call, in which six copiers are serviced
+#will be between 71.43 and 107.83 minutes.
+```
+
+```{r}
+#(c)
+c(86.82/6,92.45/6)
+#The 95% confidence interval of the expected service time per copier on calls 
+#in which six copiers are to be serviced is between 14.47 and 15.41 minutes.
+```
+
+
+```{r}
+#4.(a)
+SST <- sum( (y - ybar)^2 )
+SST #sum of square of total
+SSE <- sum( (y - yhat)^2 ) 
+SSE #sum of square of error
+SSR <- sum( (yhat - ybar)^2 )
+SSR #sum of square of Residuals
+MSR <- SSR/1
+MSR #mean of square of Residuals with degree of freedom 1
+MSE <- SSE/(n-2)
+MSE #mean of square of error with degree of freedom n-2
+```
+
+```{r}
+#(b)
+#H0 :beta1 =0, Ha:beta1!=0
+F.star <- MSR / MSE
+F.star
+1 - pf(F.star, df1=1, df2=n-2)
+#The P-value is zero, there were no linear association between the variables.
+```
+
+```{r}
+#(c)
+R_square<-SSR/SST
+R_square  #relative reduction
+#Since the result is 0.9574955 ,it's a large reduction.
+
+```
+
+
+
+```{r}
+#5.(a)
+filename <- "~/Downloads/crime_rates.txt"
+crime_rates <- read.table(file=filename, header=T)
+attach(crime_rates)
+#H0 :beta1 =0 , Ha :beta1!=0
+fit <- lm(y ~ x, data=crime_rates)
+summary(fit)
+#t_star is -4.103.
+n <- nrow(crime_rates)
+2 * pt(-4.103, df=n-2)
+#The p value is 0.00009567866,there were no linear association between crime rate and percentage of high school graduates.
+```
+
+```{r}
+#(b)
+confint(fit, "x", level=.99)
+#The 99% CI is (-280.2118, -60.93856),which means for every additional percentage point 
+#of residents with HS diploma,expected crime rate for a county decreases by 
+#between 61 and 280 crimes per 100,000 residents.
+
+```
+
+```{r}
+#(c)
+anova(fit)
+```
+
+```{r}
+#(d)
+#The F value in the ANOVA table is 16.83,and P = .000086. The P -values are the same. And F value = square of t.star=(-4.103)^2.
+```
+
+```{r}
+#(e)
+SST=93462942+455273165
+SSE=93462942
+R_square<-SSE/SST
+R_square  #The proportion
+#R_square=0.170324.It's a relatively small reducton.
+```
+
+
+```{r}
+#6.
+filename <- "~/Downloads/SENIC.txt"
+SENIC <- read.table(file=filename, header=T)
+fit.Risk <- lm(Stay ~ Risk, data=SENIC)
+summary(fit.Risk)
+fit.AFS <- lm(Stay ~ AFS, data=SENIC)
+summary(fit.AFS)
+fit.Xray <- lm(Stay ~ Xray, data=SENIC)
+summary(fit.Xray)
+#The multiple R-squared are 0.2846,0.1264 and 0.1463 for the regression of Stay on 
+#Risk, AFS, and Xray respectively. The multiple R-squared is the R^2 value.
+#Hence Infection risk accounts for the largest reduction to variability in average length of stay.
+#Compare to the conclusion reached based on MSE,they are same. Because of the equation: 
+#R^2=1-(n-2)/[sum(y-ybar)^2]*MSE
+```
+
+
+
+
+
+
+
+

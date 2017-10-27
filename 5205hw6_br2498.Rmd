@@ -1,0 +1,194 @@
+---
+title: "STAT GR5205 – Section 005 HW 6"
+author: "Bo Rong br2498"
+date: "Nov. 26th, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+SENIC <- read.table(file=filename, header=T)
+y<-SENIC$Nurses
+x<-SENIC$AFS
+plot(y~x)
+lines(lowess(y~x))
+#The linear mean function doesn't seem plausible for these data.
+```
+
+```{r}
+#(b)
+mf2 <- lm(y ~ x + I(x^2))
+plot(y ~ x)
+lines(lowess(y ~ x))
+lines(1:80,predict(mf2, data.frame(x=1:80)), lty=2.5)
+#The second order mean function seems reasonable for these data. The constant variance does not reasonable for these data.
+```
+
+```{r}
+#(c)
+summary(mf2)
+#H0:beta11 =0 vs H1:beta11 !=0.
+mf1 <- lm(y~x)
+anova(mf1, mf2)
+#the P-value is 0.0003203.the F test and t test are equivalent.
+```
+
+```{r}
+#(d)
+predict(mf2, data.frame(x=c(30, 60)), interval="prediction")
+#The 95% confidence interval with AFS = 30 is [0,239](number of nurses). The 95% confidence interval with AFS = 60 is [133,463](number of nurses).
+#We are 90% confident in both predictions simultaneously by using Bonferroni .
+```
+
+
+```{r}
+#(e)
+par(mfrow=c(1,3))
+plot(resid(mf2) ~ fitted(mf2))
+plot(resid(mf2) ~ x)
+qqnorm(resid(mf2))
+#The quadratic mean function seems a reasonable model for these data, but the constant variance 
+#and normally distributed error terms do not satisfied for these data.
+#The conclusion in part(c), it's valid to test for a quadratic term. We can not say anything about the prediction intervals from this model.
+
+```
+
+
+
+
+```{r}
+#2.
+#(a)
+#AFS has a regular distribution, and with no outliers.
+#The response variable Nurses has a right-skewed distribution.
+```
+
+```{r}
+#(b)
+library("car")
+inverseResponsePlot(lm(y ~ x))
+#The inverse response plot method suggests a log-transformation.
+library(MASS)
+boxcox(lm(y ~ x))
+boxcox(lm(y ~ x), lambda=seq(-1,1,.01))
+#The Box-Cox method suggests the log-transformation.
+
+
+```
+
+```{r}
+#(c)
+mf.log <- lm(log(y) ~ x)
+summary(mf.log)
+#For each additional percentage of AFS, the expected number of nurses increases by exp(0.046588).
+
+```
+
+
+```{r}
+#(d)
+par(mfrow=c(1,2))
+plot(resid(mf.log) ~ fitted(mf.log))
+qqnorm(resid(mf.log))
+#Yes,the data seems to reasonably conform to the model assumptions.
+
+```
+
+
+```{r}
+#(e)
+#No, because neither model is a sub-model of the other. TheF-test requires the null (reduced) model be a special case of the full model.
+
+
+```
+
+```{r}
+#(f)
+exp(predict(mf.log,data.frame(x=c(30,60)),interval="prediction"))
+##The 95% confidence interval with AFS = 30 is [28,165](number of nurses). The 95% confidence interval with AFS = 60 is [114,669](number of nurses).
+#These intervals are more useful than 1(d), the model 1(d) assumptions did not hold true.
+
+```
+
+
+
+```{r}
+#3.
+#(a)
+table(SENIC$MS)
+SENIC$MS <- 2 - SENIC$MS
+table(SENIC$MS)
+```
+
+
+
+```{r}
+#(b)
+pairs(Risk ~ Stay + Age + Xray, data=SENIC, pch=SENIC$MS+1)
+#The risk increases with stay, and also with X-ray, but doesn't related to age.
+```
+
+
+
+```{r}
+#(c)
+m1 <- lm(Risk ~ Stay + Age + Xray + MS, data=SENIC)
+m2 <- update(m1, ~ . + (Stay+Age+Xray):MS)
+anova(m1, m2)
+#The P-value is 0.1539, so fail to reject H0. We conclude that there is no interaction effect between medical school affiliation and the three predictor variables.
+
+```
+
+
+
+```{r}
+#(d)
+summary(m1)
+confint(m1)
+#The 95% confidence interval is (-0.895717627,0.32008199).
+
+
+```
+
+```{r}
+#4.
+#(a)
+pairs(Stay ~ Age + Cult + Cen + AFS, data=SENIC)
+#The variable Stay has a weak positive relationship with each of the four predictors.
+#And there are two possible outliers.Cen and AFS has a strong positive relationship with each other.
+
+
+```
+
+
+```{r}
+#(b)
+m1 <- lm(Stay ~ Age + Cult + Cen + AFS + factor(Reg), data=SENIC)
+summary(m1)
+
+#estimated mean function = 0.103691Age + 0.040302Cult + 0.006600Cen -0.020761AFS 
+# + Reg(4.197818   or 4.197818-0.959655   or 4.197818-1.516510 or 4.197818-2.149988)
+
+```
+
+
+```{r}
+#(c)
+confint(m1, level=.99)["Cult",]
+#The 99% confidence interval is (0.002777625,0.077826846).
+
+
+```
+
+
+```{r}
+#(d)
+# H0 :E(Y|X=x,region=j)=beta0 +beta1x1 +beta2x2 +beta3x3 +beta4x4
+# H1 :E(Y|X=x,region=j)=beta0j +beta1x1 +beta2x2 +beta3x3 +beta4x4
+m0<-update(m1, ~ . - factor(Reg))
+anova(m0, m1)
+#The P-value is 3.771e-05. So we strongly believe that there is a difference in average stay by region, even after adjusting for the four variables.
+```
+

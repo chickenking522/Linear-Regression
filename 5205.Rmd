@@ -1,0 +1,123 @@
+---
+title: 'STAT GR5205 – Section 005 HW1  Bo Rong  br2498'
+output: pdf_document
+---
+```{r}
+#1.
+filename <- "~/Downloads/copier_maintenance.txt"
+Data <- read.table(file=filename, header=T)
+#(a)
+plot(minutes ~ copiers, data=Data)
+low.fit <- lowess(x=Data$copiers, y=Data$minutes)
+lines(low.fit)
+
+#The simple linear regression model seems appropriate,since average minutes
+#of service time appears to be a linear function of number of copiers serviced.
+
+
+#(b)
+ls.fit <- lm(minutes ~ copiers, data=Data)
+abline(ls.fit, lty=2)
+summary(ls.fit)
+#Hence the regression line is Y^=-0.5802+15.0352x,the estimated regression function
+#fit good to the data.
+
+
+#(c)The service time increases b1 = 15.0352 minutes by each copier services. 
+
+#(d)b0 = -0.5802 maybe the starting time,which is the time before works.
+
+#(e)estimate of the mean service time for calls with x = 5 copiers by 
+#Y^=0.5802+15.0352(5)=74.596 minutes
+
+#(f)predict of the service time for a single call with  x = 5 copiers by 
+#Y^=0.5802+15.0352(5)=74.596 minutes
+
+
+#(g)
+e <- residuals(ls.fit)
+e
+sum(e)
+#sum(e)=-1.176836e-14 which is zero.The sum of squared residuals is the
+#min value of quantity Q.
+
+
+#(h)Estimate variance(error) by the Residual standard error= 8.914 minutes.
+
+
+
+#2.
+#(a)
+filename <- "~/Downloads/crime_rates.txt"
+Data <- read.table(file=filename, header=T)
+plot(y ~ x, data=Data)
+low.fit <- lowess(x=Data$x, y=Data$y)
+lines(low.fit)
+
+#yes,the simple linear regression model seems appropriate for these data.
+#Because the annual crime rate appears to be a linear function of the percentage of
+#individuals which has at least a high-school diploma.
+
+#(b)
+ls.fit <- lm(y ~ x, data=Data)
+abline(ls.fit, lty=2)
+summary(ls.fit)
+#regression line is Y^=20517.60-170.58x
+
+#(c)
+#(i) High-school graduation rates lower by 5 percentage points  will have
+#a higher crime rate by 5(170.58) = 853 crimes per 100,000.
+
+#(ii)Estimation of the crime rate for a county with an 80% high-school 
+#graduation rate will be 20517.60 - 170.58(80)= 6872 crimes per 100,000.
+
+#(iii)
+Data[6,]
+#So the random error term for the sixth county is e6 =9100 - [20517.60 - 170.58(66)]
+#= -159.64. 
+
+#(iv)
+anova(ls.fit)
+# the error term = MSE = 5,552,112.
+
+
+
+#3.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+Data <- read.table(file=filename, header=T)
+attach(Data)
+plot(Risk, Stay)
+lines(lowess(Risk, Stay))
+plot(AFS, Stay)
+lines(lowess(AFS, Stay))
+plot(Xray, Stay)
+lines(lowess(Xray, Stay))
+
+#The mean function does appear linear in each case.we can see a "straight line"
+#from bottom left to middle right going through the center of the points.
+
+#(b)
+plot(Stay ~ Risk)
+abline(lm(Stay ~ Risk))
+plot(Stay ~ AFS)
+abline(lm(Stay ~ AFS))
+plot(Stay ~ Xray)
+abline(lm(Stay ~ Xray))
+
+#The simple linear regression model seems plausible in each case.
+#we can see a "straight line"from bottom left to middle right going through
+#the center of the points. 
+
+#(c)
+anova(lm(Stay ~ Risk))
+anova(lm(Stay ~ AFS))
+anova(lm(Stay ~ Xray))
+
+#MSE(Risk) = 2.638, MSE(AFS) = 3.221 and MSE(Xray) =3.147. Risk leads to
+#the smallest variability around the fitted regression line.This result is
+#apparent from plots in parts(a) and (b).
+```
+
+
+

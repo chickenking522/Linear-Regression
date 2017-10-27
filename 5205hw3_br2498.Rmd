@@ -1,0 +1,148 @@
+---
+title: "STAT GR5205 – Section 005 HW 3"
+author: "Bo Rong br2498"
+date: "Oct. 10th, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.
+#(a)
+filename <- "~/Downloads/copiers_full.txt"
+copiers_full<- read.table(file=filename, header=T)
+x <- copiers_full$copiers
+y <- copiers_full$minutes
+dotchart(x)
+#The plot is regular,every value is represented. There is no outliers and there is no indication of temporal association.
+```
+
+```{r}
+#(b)
+fit<-lm(y~x)
+summary(fit)
+boxplot(resid(fit))
+#Not completely symmetric. The distribution of residuals is slightly skewed to the positive side and have two outliers. 
+```
+
+```{r}
+#(c)
+e<-resid(fit)
+plot(x,e)
+y_hat<-fitted(fit)
+plot(y_hat,e)
+#These two plots provide the same information.Because the fitted values and predictor variable 
+#are linearly related. These plots indicate no severe departure from the assumption of constant variance.
+```
+
+```{r}
+#(d)
+qqnorm(e)
+#The plot seems a straight line if we don't consider that two points.
+```
+
+```{r}
+#(e)
+plot.ts(e)
+#Error terms are not correlated over time, because there is no tendency for residuals to appear positive or negative consecutively.
+```
+
+```{r}
+#(f)
+plot(e ~ age, data=copiers_full)
+lines(lowess(e ~ copiers_full$age))
+plot(e ~ experience, data=copiers_full)
+lines(lowess(e ~ copiers_full$experience))
+#The age of the copiers gets larger, the person need more time to fix copiers.
+#The experience does not have any additional effect for predicting service time.
+```
+
+```{r}
+#2
+#(a)
+filename <- "~/Downloads/crime_rates.txt"
+crime_rates <- read.table(file=filename, header=T)
+hist(crime_rates$x,freq=F,xlab="HS graduation rate",main = "Density hist of HS graduation rate")
+#Distribution is skewed to the left. The HS graduation rate of all counties is between 60 and 95. 
+#And most of counties has HS graduation rate between 75 and 85.
+```
+
+```{r}
+#(b)
+fit <- lm(y ~ x, data=crime_rates)
+summary(fit)
+hist(resid(fit), freq=F,xlab="Residuals", main="")
+lines(density(resid(fit)))
+#Density does not resemble a normal curve.
+```
+
+```{r}
+#(c)
+e <- resid(fit)
+yhat <- fitted(fit)
+plot(e ~ yhat)
+lines(lowess(e ~ yhat))
+#Constant variance assumption seems fair.
+```
+
+```{r}
+#(d)
+qqnorm(e)
+#It shows a normal probability plot.Normality assumption seems good.
+```
+
+```{r}
+#3.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+SENIC <- read.table(file=filename, header=T)
+fit1 <- lm(Stay ~ Risk, data=SENIC)
+fit2 <- lm(Stay ~ AFS, data=SENIC)
+fit3 <- lm(Stay ~ Xray, data=SENIC)
+par(mfrow=c(2,3))
+plot(resid(fit1) ~ fitted(fit1))
+plot(resid(fit2) ~ fitted(fit2))
+plot(resid(fit3) ~ fitted(fit3))
+qqnorm(resid(fit1))
+qqnorm(resid(fit2))
+qqnorm(resid(fit3))
+#These three plots show that the distribution of residuals are quite similar, and 
+#all of them have two outliers. 
+```
+
+```{r}
+#(b)
+x1<-fitted(fit1)
+e<-resid(fit1)
+plot(x1, e,xlab="Fitted values", ylab="Residuals")
+identify(x1, e, n=2)
+#two outliers are 47 and 112.
+summary(fit1)
+refit <- update(fit1, subset=-c(47,112))
+summary(refit)
+plot(Stay ~ Risk, data=SENIC)
+abline(fit1, lty=1)
+abline(refit, lty=2)
+#The distribution of residual is much normal after we remove that two outliers.
+```
+
+```{r}
+#(c)
+SENIC[c(47,112),]
+predict(refit, SENIC[c(47,112),], interval="prediction")
+#For hospital 47, the 95% PI is (8.3,13.3), the average length of stay in hospital 47 is 19.56, 
+#it is not in the prediction interval,hence it is a outlier.
+#For hospital 112, the 95% PI is (7.9,12.9), the average length of stay in hospital 112 is 17.94, 
+#it is not in the prediction interval,hence it is a outlier.
+```
+
+
+
+
+
+
+
+
+
+
+
+

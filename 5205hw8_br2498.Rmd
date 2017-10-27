@@ -1,0 +1,156 @@
+---
+title: "STAT GR5205 – Section 005 HW 8"
+author: "Bo Rong br2498"
+date: "Dec. 10th, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.
+#(a)
+filename <- "~/Downloads/patient_satisfaction.txt"
+PS<-read.table(file=filename, header=T)
+mlack <-lm(Y ~ Age + Severity + Anxiety, data=PS)
+summary(mlack)
+library(car)
+residualPlots(mlack)
+# No evidence of lack of fit in linear mean function. 
+
+```
+
+```{r}
+#(b)
+#H0:Var(Y|X=x)=sigma^2  H1:Var(Y|X=x)=sigma^2exp{gamma1x1 +gamma2x2 +gamma3x3}
+#not all gamma is 0.
+ncvTest(mlack, ~ Age + Severity + Anxiety)
+#The P -value is 0.7406642, so there is no evidence of nonconstant variance.
+```
+
+
+
+```{r}
+#2.
+#(a)
+infIndexPlot(mlack, vars="Studentized")
+outlierTest(mlack, cutoff=1)
+#Since no Studentized residuals with Bonferonni p<1, thus there is no outlier.
+```
+
+
+
+```{r}
+#(b)
+infIndexPlot(mlack, vars="hat")
+#The three highest hat-values are for cases 9, 28, and 39.No high leverage cases.
+
+```
+
+
+
+```{r}
+#(c)
+X <- as.matrix(PS[,-1])
+solve(t(X) %*% X)
+x <- c(30, 58, 2)
+as.numeric(t(x) %*% solve(t(X)%*%X, x))
+#The new case leverage value for x = (58, 30, 2.0) is 0.2334774, which is greater than 
+#the highest hat-value. So this estimate involve a “hidden extrapolation”.
+
+```
+
+
+```{r}
+#(d)
+infIndexPlot(mlack, vars="Cook")
+#The most influential cases are 17, 27 and 31. And all three cases are outlierness.
+```
+
+
+
+```{r}
+#3.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+SENIC<-read.table(file=filename, header=T)
+Y <- SENIC$Stay 
+X1 <- SENIC$Age 
+X2 <- SENIC$Xray 
+X3 <- SENIC$Cen
+m1 <- lm(Y ~ X1 + X2 + X3)
+residualPlots(m1)
+#No indication of curvature in the residual plots, thus no evidence of lack of fit for the linear mean function.
+
+
+```
+
+
+
+
+```{r}
+#(b)
+#H0:Var(Y|X=x)=sigma^2  H1:Var(Y|X=x)=sigma^2exp{gamma1x1 +gamma2x2 +gamma3x3}
+ncvTest(m1, ~X1+X2+X3)
+#The P-value is 2.506893e-09. The variance is not constant.
+
+```
+
+
+
+```{r}
+#(c)
+infIndexPlot(m1, vars="Studentized")
+outlierTest(m1, cutoff=1)
+#Case 47 and 112 are outliers.
+
+```
+
+
+
+```{r}
+#(d)
+infIndexPlot(m1, vars="hat")
+#Cases 104 and 112 are high leverage.
+
+```
+
+
+
+```{r}
+#(e)
+infIndexPlot(m1, vars="Cook")
+#Cases 47 and 112 are the most influential cases in the dataset. Case 47 is an outlier, but not a high leverage case. Case 112 is an outlier, and also a high leverage.
+
+
+```
+
+```{r}
+#4.
+#(a)
+Y <- 1/SENIC$Stay
+X1 <- SENIC$Age
+X2 <- SENIC$Xray 
+X3 <- log(SENIC$Cen)
+m2 <- lm(Y ~ X1 + X2 + X3)
+residualPlots(m2)
+#Linear mean function seems reasonable.
+
+#(b)
+ncvTest(m2, ~ X1 + X2 + X3)
+#The p-value is 0.9848272, so the constant variance assumption is reasonable.
+
+#(c)
+infIndexPlot(m2, vars="Studentized")
+outlierTest(m2, cutoff=1)
+#Case 1 and 87 maybe outliers.
+
+#(d)
+infIndexPlot(m2, vars="hat")
+#Cases 104 is high leverage.
+
+#(e)
+infIndexPlot(m2, vars="Cook")
+#Case 47 is the most influential cases in the dataset. But case 47 is not an outlier. 
+```
+
+
+

@@ -1,0 +1,145 @@
+---
+title: "STAT GR5205 – Section 005 HW 7"
+author: "Bo Rong br2498"
+date: "Dec. 2nd, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.
+#(a)
+filename <- "~/Downloads/job_proficiency.txt"
+JP<-read.table(file=filename, header=T)
+X<-c(JP$X1,JP$X2,JP$X3,JP$X4)
+Test <-rep(1:4,rep(25,4))
+boxplot(X~Test, xlab="Test", ylab="Scores")
+#All four tests have average score around 100, and test 1 has one outlier.
+
+```
+
+```{r}
+#(b)
+pairs(JP)
+#Y is positively associated with all four test scores(X1,X2,X3,X4). The test scores X1,X2,X3 and X4 
+#are positively associated with each other,there is no serious multicollinearity problems evident.
+
+```
+
+
+
+```{r}
+#(c)
+mrf <- lm(Y ~ X1 + X2 + X3 + X4, data=JP)
+summary(mrf)
+#All four coefficients are positive. P-value of X2 is 0.40383,so X2 can be dropped.   
+
+
+```
+
+
+
+```{r}
+#2.
+#(a)
+mback<-lm(Y ~ ., data=JP)
+step(mback, direction="backward")
+#Estimated mean function is E(Y|X = x) = -124.2 + 0.2963x1 + 1.357x3 + 0.5174x4.
+
+```
+
+
+
+```{r}
+#(b)
+mfor<-lm(Y ~ 1, data=JP)
+step(mfor, scope=~X1+X2+X3+X4)
+#E(Y|X = x) = -124.2 + 0.2963x1 + 1.357x3 + 0.5174x4. The same as part(a).
+
+```
+
+
+
+```{r}
+#(c)
+step(mback, direction="backward", k=log(25))
+step(mfor, scope=~X1+X2+X3+X4, k=log(25))
+#Still the same mean function.
+
+```
+
+
+
+```{r}
+#3.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+SENIC<-read.table(file=filename, header=T)
+library(car)
+transformation<-powerTransform(cbind(Age,Risk,Cult,Xray,Beds,Cen,Nurses,AFS)~1,data=SENIC)
+summary(transformation)
+#Box-Cox method chooses log-transformations (lambda = 0) for Cult and Beds, but lambda = .20 
+#for Cen and lambda = .15 for Nurses.
+X1 <- SENIC$Age
+X2 <- SENIC$Risk
+X3 <- log(SENIC$Cult)
+X4 <- SENIC$Xray
+X5 <- log(SENIC$Beds)
+X6 <- log(SENIC$Cen)
+X7 <- log(SENIC$Nurses)
+X8 <- SENIC$AFS
+m1<-lm(SENIC$Stay ~ X1+X2+X3+X4+X5+X6+X7+X8)
+inverseResponsePlot(m1)
+unlist(invTranEstimate(SENIC$Stay, fitted(m1)))
+library(MASS)
+boxcox(m1)
+Y <- 1 / SENIC$Stay
+
+```
+
+
+
+
+```{r}
+#(b)
+pairs(SENIC)
+#The strongest correlations are X5 and X6.
+
+
+
+```
+
+
+
+```{r}
+#(c)
+mforward <-lm(Y~1)
+step(mforward, scope=~X1+X2+X3+X4+X5+X6+X7+X8)
+#Forward selection chooses the mean function :0.2127046 -0.0008262X1 - 0.0040211X2 
+#- 0.0002117X4 + 0.0160117X5 - 0.0297851X6 + 0.0074390X7.
+
+```
+
+
+
+```{r}
+#(d)
+mbackward<-lm(Y~X1+X2+X3+X4+X5+X6+X7+X8) 
+step(mbackward, direction="backward")
+#Backward selection also has the same mean function:0.2127046 -0.0008262X1 - 0.0040211X2 
+#- 0.0002117X4 + 0.0160117X5 - 0.0297851X6 + 0.0074390X7.
+
+```
+
+
+
+```{r}
+#(e)
+step(mbackward, direction="backward", k=log(length(Y)))
+#By the Bayesian criterion,the mean function :0.2247364 - 0.0007864X1 - 0.0042680X2 
+#- 0.0002187X4  - 0.0176324X6 + 0.0098629X7, which means also drop X5.
+m.final <- step(mbackward, direction="backward", k=log(length(Y)))
+summary(m.final)
+#The average length of stay is an increasing function of X1(Age), X2(Risk), X4(Xray), 
+#and X6(Cen), but a decreasing function of X7(Nurses).
+```
+

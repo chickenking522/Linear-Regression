@@ -1,0 +1,197 @@
+---
+title: "STAT GR5205 – Section 005 HW 4"
+author: "Bo Rong br2498"
+date: "Oct 22, 2016"
+output: pdf_document
+---
+
+```{r}
+#1.
+#(a)
+#H0 :Yi = beta0 + beta1xi +errori for i=1,...,n and Ha :Yi =f(xi)+errori for i=1,...,n errori are iid N(0, sigma^2).
+```
+
+```{r}
+#(b)
+filename <- "~/Downloads/copiers_full.txt"
+copier_maintenance<- read.table(file=filename, header=T)
+y <- copier_maintenance$minutes
+x <- copier_maintenance$copiers
+#Let Y be the total repair time for the ith call on which there were j copiers.
+#H0: Yij = beta0 + beta1xi +errorij 
+#Ha: Yij = mu + errorij ,errorij are iid N(0, sigma^2).
+reduced <- lm(y ~ x)
+full <- lm(y ~ as.factor(x) - 1)
+anova(reduced, full)
+#The P-value is 0.4766 and thus we accept H0.
+```
+
+```{r}
+#(c)
+#The test in part (b) does not detect other departures from the normal SLR model, but the results of the test of lack of fit could be affected by such departures. 
+```
+
+
+
+
+```{r}
+#2
+#(a)
+filename <- "~/Downloads/copiers_full.txt"
+copier_maintenance<- read.table(file=filename, header=T)
+x <- copier_maintenance$copiers
+y <- copier_maintenance$minutes
+fit <- lm(y ~ x, data=copier_maintenance)
+alpha<-.05
+g <- 2
+confint(fit, level=1-alpha/g)
+#Hence the 95% confident of beta0 is between -7.092642 and 5.932329 and the 95% confident of beta1 is between 13.913221 and 16.157275.
+```
+
+```{r}
+#(b)
+#The intervals in part (a) support this claim,because beta0=0 is in the interval (-7.092642,5.932329)
+#and beta1=14 is in the interval (13.913221, 16.157275).
+```
+
+```{r}
+#(c)
+alpha <- .05 
+g <- 3
+predict(fit,data.frame(x=c(3,5,7)),interval="confidence",level=1-alpha/g)
+#Thus the 95% confidence interval for number of minutes spent when there are 3, 5, 
+#and 7 copiers to be serviced are (40.35270,48.69848),(71.28313,  77.90904) and (100.65092,108.68224) respectively.
+```
+
+```{r}
+#(d)
+alpha <- .05
+g <- 2
+predict(fit, data.frame(x=c(4,6)), interval="prediction", level=1-alpha/g)
+#Thus the 95% confidence interval for number of minutes spent with 4 and 6 copiers to be serviced 
+#are (38.59230,80.52937) and (68.67614,110.58652) respectively.
+```
+
+```{r}
+#(e)
+plot(y ~ x, data=copier_maintenance)
+preds <- predict(fit,data.frame(x=1:10),se.fit=T)
+W.H <- sqrt(2 * qf(.95, df1=2, df2=43))
+lines(1:10, preds$fit)
+lines(1:10, preds$fit + W.H*preds$se.fit, lty=2.5)
+lines(1:10, preds$fit - W.H*preds$se.fit, lty=2.5)
+#The 95% confident interval of mean function falls within the dashed lines.
+```
+
+```{r}
+#(f)
+plot(y ~ x, data=copier_maintenance)
+preds <- predict(fit,data.frame(x=1:10),se.fit=T)
+W.H <- sqrt(2 * qf(.95, df1=2, df2=43))
+lines(1:10, preds$fit)
+lines(1:10, preds$fit + W.H*preds$se.fit, lty=2.5)
+lines(1:10, preds$fit - W.H*preds$se.fit, lty=2.5)
+abline(0,14,col="blue")
+#The line doesn't fall within the WH confidence band,thus the data are not consistent with claim.
+```
+
+
+```{r}
+#3.
+#(a)
+filename <- "~/Downloads/SENIC.txt"
+SENIC <- read.table(file=filename, header=T)
+fit.Risk <- lm(Stay ~ Risk, data=SENIC)
+alpha<-.05
+g <- 2
+confint(fit.Risk, level=1-alpha/g)
+#Hence the 95% confident of beta1 is between 0.5003816 and 1.020460 and the 95% confident of beta0 is between 5.1523372 and 7.521236.
+```
+
+```{r}
+#(b)
+#way 1: Since beta1=1 and beta0=7 are in the interval from part a, the data are consistent with the claim.
+
+preds <- predict(fit.Risk,data.frame(Risk=1:8), se.fit=T)
+W.H <- sqrt(2 * qf(.95, df1=2, df2=111))
+plot(Stay ~ Risk, data=SENIC)
+lines(1:8, preds$fit)
+lines(1:8, preds$fit + W.H*preds$se.fit, lty=2)
+lines(1:8, preds$fit - W.H*preds$se.fit, lty=2)
+abline(7,1, col="red")
+#way 2: the line doesn't fall within the WH confidence band,thus the data are not consistent with claim.
+```
+
+```{r}
+#(c)
+alpha <- .05 
+g <- 4
+predict(fit.Risk,data.frame(Risk=2:5),interval="confidence",level=1-alpha/g)
+#Thus the 95% confident intervals of the mean stay at hospitals with infection risk x = 2,3,4 and 5 
+#are (7.071051,8.644206), (8.065356,9.170743), (8.977088,9.779852) and (9.708059 10.569723) respectively.
+```
+
+
+
+
+
+```{r}
+#4
+#(a)
+filename <- "~/Downloads/copiers_full.txt"
+copier_maintenance<- read.table(file=filename, header=T)
+x <- copier_maintenance$copiers
+y <- copier_maintenance$minutes
+X<-cbind(rep(1,length(x)),x)
+beta_value<-solve(t(X)%*%X)%*%t(X)%*%y
+beta_value<-as.vector(beta_value)
+beta_value
+#Hence the coefficients are -0.5801567 and 15.0352480.
+```
+
+```{r}
+#(b)
+y_hat<-X%*%beta_value
+y_hat<-as.vector(y_hat)
+y_hat
+e<-y-y_hat
+e
+```
+
+```{r}
+#(c)
+J<-matrix(rep(1, length(y)^2), length(y), length(y))
+SSTO<-t(y)%*%y-1/length(y)*t(y)%*%J%*%y
+SSTO<-as.numeric(SSTO)
+SSTO
+SSE<-t(e)%*%e
+SSE<-as.numeric(SSE)
+SSE
+```
+
+```{r}
+#(d)
+MSE<-SSE/(length(y)-2)
+MSE<-as.numeric(MSE)
+variance_covariance_matrix_of_b<-MSE * solve(t(X) %*% X)
+variance_covariance_matrix_of_b
+```
+
+```{r}
+#(e)
+SE.fit<-sqrt(MSE*(1/length(x) + (6-mean(x))^2 / sum((x-mean(x))^2)))
+t(beta_value) %*% c(1,6) + c(-1,1)*qt(.975,length(x)-2)*SE.fit
+#The 95% confidence interval is (86.81520,92.44746).
+```
+
+```{r}
+#(f)
+SE.pred <- sqrt(MSE*(1+1/length(x)+(6-mean(x))^2/sum((x-mean(x))^2)))
+t(beta_value)%*%c(1,6)+c(-1,1)*qt(.975,length(x)-2)*SE.pred
+#The 95% prediction interval is (71.43628,107.82639).
+```
+
+
+
+
+
